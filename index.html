@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>대전장대중학교 급식 안전 지킴이</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Jua (둥근 클레이 타이틀용) & Pretendard -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', 'sans-serif'],
+                        clay: ['Jua', 'Pretendard', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff8f1',
+                            100: '#feecdc',
+                            200: '#fcd9bd',
+                            300: '#fdba8c',
+                            400: '#ff8a4c',
+                            500: '#ff5a1f',
+                            600: '#d03801',
+                        },
+                        cream: '#FAF6F0',
+                        cocoa: '#4A2E1B',
+                        jangdae: '#15803D',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(180deg, #FFFFFF 0%, #FAF5EE 45%, #F6EFE6 100%);
+            color: #2D241E;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 3D 클레이모피즘(Claymorphism) 카드 & 버튼 스타일 */
+        .clay-emblem {
+            background: radial-gradient(circle at 30% 25%, #FFFFFF 0%, #F9F6F2 65%, #EFE9E1 100%);
+            box-shadow: 
+                14px 18px 34px rgba(139, 115, 95, 0.16),
+                -10px -10px 24px rgba(255, 255, 255, 0.95),
+                inset 4px 4px 12px rgba(255, 255, 255, 1),
+                inset -6px -8px 16px rgba(214, 202, 188, 0.45);
+        }
+
+        .clay-card {
+            background: #FFFFFF;
+            border-radius: 1.75rem;
+            box-shadow: 
+                8px 10px 22px rgba(148, 124, 102, 0.1),
+                -4px -4px 14px rgba(255, 255, 255, 0.9),
+                inset 2px 2px 6px rgba(255, 255, 255, 0.9),
+                inset -2px -3px 8px rgba(226, 214, 200, 0.35);
+            border: 1.5px solid rgba(255, 255, 255, 0.85);
+        }
+
+        .clay-pill {
+            box-shadow: 
+                3px 4px 8px rgba(148, 124, 102, 0.12),
+                inset 1.5px 1.5px 3px rgba(255, 255, 255, 0.9),
+                inset -1.5px -2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .clay-pill-active {
+            box-shadow: 
+                0 6px 14px rgba(239, 68, 68, 0.28),
+                inset 2px 2px 4px rgba(255, 180, 180, 0.6),
+                inset -2px -3px 5px rgba(153, 27, 27, 0.35);
+        }
+
+        .clay-text-3d {
+            text-shadow: 0 2px 0 rgba(255, 255, 255, 0.9), 0 4px 8px rgba(74, 46, 27, 0.16);
+        }
+
+        /* 커스텀 스크롤바 숨김 */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* 부드러운 아코디언 전환 */
+        .accordion-content {
+            transition: max-height 0.3s ease-out, opacity 0.25s ease-out, padding 0.3s ease;
+            max-height: 0;
+            opacity: 0;
+            overflow: hidden;
+        }
+        .accordion-content.open {
+            max-height: 500px;
+            opacity: 1;
+        }
+
+        /* 알레르기 위험 애니메이션 */
+        @keyframes pulse-border {
+            0%, 100% { border-color: #FCA5A5; }
+            50% { border-color: #EF4444; }
+        }
+        .allergy-danger-card {
+            animation: pulse-border 2s infinite;
+        }
+
+        /* 식판 수저 둥실둥실 애니메이션 */
+        @keyframes float-gentle {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-3px); }
+        }
+        .float-item {
+            animation: float-gentle 3.2s ease-in-out infinite;
+        }
+
+        /* 시작 표지 화면 전환 애니메이션 */
+        #cover-screen {
+            transition: opacity 0.45s cubic-bezier(0.4, 0, 0.2, 1), transform 0.45s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        #cover-screen.cover-hidden {
+            opacity: 0;
+            transform: scale(1.04) translateY(-16px);
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-orange-200 selection:text-cocoa">
+
+    <!-- ========================================================================
+         시작 표지 화면 (Splash / Cover Screen)
+         ======================================================================== -->
+    <div id="cover-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-between px-5 py-8 sm:py-10 bg-gradient-to-b from-white via-[#FAF5EE] to-[#F4EBE0] overflow-y-auto">
+        <!-- 상단 환영 배지 -->
+        <div class="mt-1 inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/90 border border-orange-100 clay-pill">
+            <span class="w-2 h-2 rounded-full bg-green-600 animate-ping"></span>
+            <span class="text-xs font-extrabold text-cocoa tracking-tight">알레르기 걱정 없는 건강한 학교생활</span>
+        </div>
+
+        <!-- 중앙: 3D 클레이 원형 엠블럼 + 마스코트 캐릭터 + 따뜻한 문구 -->
+        <div class="flex flex-col items-center text-center my-auto py-4 max-w-sm w-full">
+            
+            <!-- 원형 3D 클레이 엠블럼 & 캐릭터 조합 -->
+            <div class="relative flex items-center justify-center">
+                <!-- 메인 원형 엠블럼 (급식 화면의 디테일한 3D 클레이 식판 & 수저 적용) -->
+                <div class="clay-emblem relative w-[290px] h-[290px] sm:w-[320px] sm:h-[320px] rounded-full flex flex-col items-center justify-between py-5 px-4 select-none">
+                    <!-- 대전장대중학교 녹색 교표(CI) -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-b from-green-600 to-green-800 p-1 shadow-md flex items-center justify-center border-2 border-white">
+                            <svg viewBox="0 0 64 64" class="w-full h-full">
+                                <circle cx="32" cy="32" r="28" fill="none" stroke="#DCFCE7" stroke-width="1.5" stroke-dasharray="2 2"/>
+                                <circle cx="32" cy="32" r="21" fill="#FFFFFF"/>
+                                <circle cx="32" cy="21" r="3.5" fill="#15803D"/>
+                                <path d="M21 29H43" stroke="#15803D" stroke-width="4.2" stroke-linecap="round"/>
+                                <path d="M32 29L22 42" stroke="#15803D" stroke-width="4.2" stroke-linecap="round"/>
+                                <path d="M32 29L42 42" stroke="#15803D" stroke-width="4.2" stroke-linecap="round"/>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <!-- 3D 클레이 입체 타이틀 -->
+                    <div class="text-center -mt-1 z-10">
+                        <p id="cover-school-title" class="font-clay text-xl sm:text-2xl text-cocoa tracking-tight clay-text-3d leading-none">
+                            대전장대중학교
+                        </p>
+                        <h1 class="font-clay text-[26px] sm:text-[30px] text-cocoa tracking-tight clay-text-3d leading-tight mt-0.5">
+                            급식 안전 지킴이
+                        </h1>
+                    </div>
+
+                    <!-- 3D 클레이 식판 & 수저 일러스트 -->
+                    <div class="relative w-full flex items-center justify-center -mt-1">
+                        <!-- 장식 미니 아이콘 (브로콜리, 당근) -->
+                        <span class="absolute left-5 -top-3 text-base sm:text-lg float-item" style="animation-delay: 0.2s;" aria-hidden="true">🥦</span>
+                        <span class="absolute left-3 top-3 text-sm sm:text-base float-item" style="animation-delay: 0.6s;" aria-hidden="true">🥕</span>
+                        <span class="absolute right-5 -top-3 text-base sm:text-lg float-item" style="animation-delay: 0.4s;" aria-hidden="true">🥦</span>
+                        <span class="absolute right-3 top-3 text-sm sm:text-base float-item" style="animation-delay: 0.8s;" aria-hidden="true">🥕</span>
+
+                        <!-- 3D 클레이 식판 SVG -->
+                        <svg viewBox="0 0 260 135" class="w-[225px] sm:w-[248px] h-auto drop-shadow-md">
+                            <defs>
+                                <radialGradient id="trayGrad" cx="40%" cy="30%" r="70%">
+                                    <stop offset="0%" stop-color="#FBEAD6"/>
+                                    <stop offset="70%" stop-color="#EED4B7"/>
+                                    <stop offset="100%" stop-color="#D9B996"/>
+                                </radialGradient>
+                                <radialGradient id="soupGrad" cx="45%" cy="40%" r="60%">
+                                    <stop offset="0%" stop-color="#FF6B35"/>
+                                    <stop offset="80%" stop-color="#D9381E"/>
+                                    <stop offset="100%" stop-color="#9E2210"/>
+                                </radialGradient>
+                                <radialGradient id="riceGrad" cx="40%" cy="35%" r="65%">
+                                    <stop offset="0%" stop-color="#FFFFFF"/>
+                                    <stop offset="80%" stop-color="#F3F4F6"/>
+                                    <stop offset="100%" stop-color="#D1D5DB"/>
+                                </radialGradient>
+                            </defs>
+
+                            <!-- 왼쪽 숟가락 -->
+                            <g transform="translate(14, 24)">
+                                <rect x="8" y="42" width="7" height="44" rx="3.5" fill="#F59E0B"/>
+                                <rect x="9.5" y="34" width="4" height="12" rx="2" fill="#E5E7EB"/>
+                                <ellipse cx="11.5" cy="22" rx="9.5" ry="14" fill="#F3F4F6" stroke="#D1D5DB" stroke-width="1.5"/>
+                                <ellipse cx="9.5" cy="19" rx="4" ry="7" fill="#FFFFFF" opacity="0.8"/>
+                            </g>
+
+                            <!-- 중앙 원형 3D 식판 본체 -->
+                            <g transform="translate(46, 4)">
+                                <ellipse cx="84" cy="64" rx="80" ry="60" fill="url(#trayGrad)" stroke="#FFF7ED" stroke-width="2.5"/>
+                                <ellipse cx="84" cy="64" rx="73" ry="53" fill="none" stroke="#CFA982" stroke-width="1.5" opacity="0.5"/>
+
+                                <!-- 상단 반찬 1 (나물/시금치) -->
+                                <circle cx="42" cy="40" r="18" fill="#BEF264" stroke="#84CC16" stroke-width="2"/>
+                                <path d="M33 40 Q42 32 51 40 Q42 46 33 40 Z" fill="#15803D"/>
+                                <path d="M35 37 Q42 44 49 36" stroke="#22C55E" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+                                <!-- 상단 중앙 반찬 2 (김치 & 계란말이) -->
+                                <rect x="64" y="16" width="40" height="22" rx="10" fill="#E6C7A6" opacity="0.6"/>
+                                <rect x="68" y="19" width="14" height="15" rx="4" fill="#EF4444"/>
+                                <path d="M70 23 H80 M70 28 H79" stroke="#FCA5A5" stroke-width="1.5" stroke-linecap="round"/>
+                                <rect x="85" y="19" width="15" height="15" rx="4" fill="#FACC15"/>
+                                <path d="M88 23 H97 M88 29 H97" stroke="#CA8A04" stroke-width="1.5" stroke-linecap="round"/>
+
+                                <!-- 중앙 메인 반찬 (불고기/제육) -->
+                                <ellipse cx="84" cy="52" rx="22" ry="13" fill="#E6C7A6" opacity="0.5"/>
+                                <path d="M68 52 C70 44, 82 43, 86 48 C92 44, 101 47, 99 54 C96 60, 72 60, 68 52 Z" fill="#7C2D12"/>
+                                <circle cx="78" cy="50" r="1.3" fill="#FDE047"/>
+                                <circle cx="88" cy="52" r="1.3" fill="#FDE047"/>
+
+                                <!-- 상단 반찬 3 (채소 무침) -->
+                                <circle cx="126" cy="40" r="18" fill="#FDBA74" stroke="#FB923C" stroke-width="2"/>
+                                <path d="M117 41 C121 34, 131 34, 135 41" stroke="#16A34A" stroke-width="3" stroke-linecap="round" fill="none"/>
+                                <path d="M119 44 C124 39, 129 39, 133 44" stroke="#15803D" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+                                <!-- 하단 좌측: 따뜻한 흰쌀밥 그릇 -->
+                                <circle cx="52" cy="84" r="27" fill="#FB923C" stroke="#EA580C" stroke-width="2"/>
+                                <circle cx="52" cy="81" r="22" fill="url(#riceGrad)"/>
+                                <ellipse cx="46" cy="78" rx="2" ry="1.2" fill="#D1D5DB"/>
+                                <ellipse cx="56" cy="83" rx="2" ry="1.2" fill="#D1D5DB"/>
+                                <ellipse cx="50" cy="87" rx="2" ry="1.2" fill="#D1D5DB"/>
+                                <path d="M45 64 Q43 58 46 53" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+                                <path d="M52 62 Q50 56 53 51" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+                                <path d="M59 64 Q57 58 60 53" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.9"/>
+
+                                <!-- 하단 우측: 보글보글 뚝배기 국 -->
+                                <g transform="translate(114, 83)">
+                                    <rect x="-31" y="-6" width="8" height="12" rx="4" fill="#3E2723"/>
+                                    <rect x="23" y="-6" width="8" height="12" rx="4" fill="#3E2723"/>
+                                    <circle cx="0" cy="0" r="26" fill="#4E342E" stroke="#3E2723" stroke-width="2"/>
+                                    <circle cx="0" cy="-1" r="21" fill="url(#soupGrad)"/>
+                                    <rect x="-9" y="-8" width="6" height="6" rx="1.5" fill="#FEF3C7"/>
+                                    <rect x="4" y="3" width="6" height="6" rx="1.5" fill="#FEF3C7"/>
+                                    <circle cx="5" cy="-7" r="3" fill="#22C55E"/>
+                                    <circle cx="-6" cy="5" r="3" fill="#22C55E"/>
+                                    <circle cx="0" cy="-1" r="2.5" fill="#FACC15"/>
+                                </g>
+                            </g>
+
+                            <!-- 오른쪽 젓가락 한 쌍 -->
+                            <g transform="translate(226, 22)">
+                                <rect x="2" y="4" width="3.5" height="82" rx="1.75" fill="#E5E7EB"/>
+                                <rect x="2" y="54" width="3.5" height="32" rx="1.75" fill="#F59E0B"/>
+                                <rect x="11" y="4" width="3.5" height="82" rx="1.75" fill="#E5E7EB"/>
+                                <rect x="11" y="54" width="3.5" height="32" rx="1.75" fill="#F59E0B"/>
+                            </g>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- 오른쪽 하단에 귀엽게 빼꼼 인사하는 3D 클레이 급식 요정 캐릭터 -->
+                <div class="absolute -bottom-3 -right-2 sm:-right-4 w-24 h-24 sm:w-28 sm:h-28 float-item drop-shadow-lg select-none" aria-hidden="true">
+                    <svg viewBox="0 0 120 120" class="w-full h-full">
+                        <!-- 요리사 모자 (하얀 뭉게구름 3D 클레이) -->
+                        <circle cx="46" cy="28" r="14" fill="#FFFFFF"/>
+                        <circle cx="62" cy="23" r="16" fill="#FFFFFF"/>
+                        <circle cx="77" cy="29" r="13" fill="#FFFFFF"/>
+                        <rect x="40" y="33" width="42" height="12" rx="5" fill="#F3F4F6" stroke="#E5E7EB" stroke-width="1.5"/>
+                        <rect x="42" y="38" width="38" height="4" rx="2" fill="#22C55E"/>
+
+                        <!-- 캐릭터 얼굴 (따뜻한 살구빛 3D 볼륨) -->
+                        <circle cx="61" cy="64" r="24" fill="#FDE68A"/>
+                        <circle cx="61" cy="63" r="22" fill="#FEF3C7"/>
+                        <!-- 반짝이는 눈 & 발그레한 볼 -->
+                        <circle cx="53" cy="61" r="2.8" fill="#4A2E1B"/>
+                        <circle cx="52" cy="60" r="1" fill="#FFFFFF"/>
+                        <circle cx="69" cy="61" r="2.8" fill="#4A2E1B"/>
+                        <circle cx="68" cy="60" r="1" fill="#FFFFFF"/>
+                        <ellipse cx="47" cy="66" rx="3.5" ry="2" fill="#FDA4AF" opacity="0.75"/>
+                        <ellipse cx="75" cy="66" rx="3.5" ry="2" fill="#FDA4AF" opacity="0.75"/>
+                        <!-- 활짝 웃는 입 -->
+                        <path d="M56 68 Q61 74 66 68" stroke="#4A2E1B" stroke-width="2.5" stroke-linecap="round" fill="none"/>
+
+                        <!-- 초록 앞치마 몸통 & 인사하는 손 -->
+                        <path d="M41 88 C41 79, 81 79, 81 88 L85 108 C85 112, 37 112, 37 108 Z" fill="#16A34A"/>
+                        <rect x="49" y="88" width="24" height="20" rx="6" fill="#FFFFFF"/>
+                        <!-- 하트 방패 뱃지 -->
+                        <path d="M61 102 C55 97, 54 92, 58 92 C60 92, 61 94, 61 94 C61 94, 62 92, 64 92 C68 92, 67 97, 61 102 Z" fill="#EF4444"/>
+                        <!-- 반갑게 흔드는 왼손 -->
+                        <circle cx="33" cy="82" r="7" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5"/>
+                        <!-- 작은 숟가락을 든 오른손 -->
+                        <circle cx="89" cy="84" r="7" fill="#FEF3C7" stroke="#FDE68A" stroke-width="1.5"/>
+                        <rect x="88" y="64" width="3.5" height="22" rx="1.75" fill="#F59E0B"/>
+                        <ellipse cx="89.7" cy="61" rx="5" ry="7" fill="#E5E7EB"/>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- 캐릭터 말풍선 및 안내 문구 -->
+            <div class="mt-7 space-y-2 px-2">
+                <div class="inline-block bg-white px-4 py-2 rounded-2xl border border-orange-100 clay-pill">
+                    <p class="font-clay text-base sm:text-lg text-cocoa">
+                        "안녕! 오늘 급식 메뉴와 알레르기, 내가 꼼꼼히 지켜줄게!"
+                    </p>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-500 leading-relaxed pt-1">
+                    우리 학교 오늘의 맛있는 식단부터<br>
+                    19가지 알레르기 유발 성분까지 한눈에 확인하세요.
+                </p>
+            </div>
+        </div>
+
+        <!-- 하단 시작하기 CTA 버튼 -->
+        <div class="w-full max-w-xs space-y-2.5 pb-2">
+            <button id="enter-app-btn" type="button" class="w-full py-4 px-6 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-clay text-lg sm:text-xl tracking-wide shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 transition transform active:scale-95">
+                <span>오늘의 급식 확인하기</span>
+                <i data-lucide="arrow-right" class="w-5 h-5"></i>
+            </button>
+            <p class="text-[11px] text-center text-gray-400">나이스(NEIS) 교육정보 개방 포털 실시간 연동</p>
+        </div>
+    </div>
+
+    <!-- 상단 플로팅 미니 네비게이션 바 -->
+    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-orange-100/80">
+        <div class="max-w-2xl mx-auto px-4 py-2.5 flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <!-- 미니 교표 뱃지 (클릭 시 표지 화면 다시 보기 가능) -->
+                <button id="open-cover-btn" type="button" title="시작 표지 보기" class="w-8 h-8 rounded-full bg-green-700 text-white flex items-center justify-center shrink-0 shadow-sm border-2 border-white hover:scale-105 transition">
+                    <svg viewBox="0 0 36 36" class="w-5 h-5" fill="none">
+                        <circle cx="18" cy="10" r="2.6" fill="#FFFFFF"/>
+                        <path d="M10 16.5H26M18 16.5L11.5 25.5M18 16.5L24.5 25.5" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="truncate">
+                    <div class="flex items-center gap-1.5">
+                        <span id="header-school-name" class="text-sm font-extrabold text-cocoa truncate">대전장대중학교</span>
+                        <span id="current-school-region" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-800 shrink-0">대전</span>
+                    </div>
+                    <p id="current-school-address" class="text-[11px] text-gray-500 truncate">대전광역시 유성구 월드컵대로275번길 46</p>
+                </div>
+            </div>
+
+            <button id="toggle-search-btn" type="button" class="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-orange-50 hover:bg-orange-100 text-cocoa font-bold text-xs border border-orange-200/80 clay-pill transition active:scale-95">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-orange-500"></i>
+                <span>학교 변경</span>
+            </button>
+        </div>
+
+        <!-- 학교 검색 드롭다운 패널 (토글식) -->
+        <div id="school-search-panel" class="hidden max-w-2xl mx-auto px-4 pt-2 pb-3 border-t border-orange-100/80 bg-white/95">
+            <div class="relative">
+                <input type="text" id="school-search-input" 
+                       placeholder="학교명을 입력하세요 (예: 대전장대중학교, 유성중...)" 
+                       class="w-full pl-10 pr-16 py-2.5 bg-cream border border-orange-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 focus:bg-white transition"
+                       autocomplete="off">
+                <i data-lucide="school" class="w-4 h-4 text-orange-400 absolute left-3.5 top-3"></i>
+                <button id="school-search-submit" type="button" class="absolute right-2 top-1.5 px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl transition">
+                    검색
+                </button>
+            </div>
+            <!-- 검색 결과 리스트 -->
+            <div id="school-search-results" class="mt-2 max-h-60 overflow-y-auto rounded-2xl border border-orange-100 bg-white shadow-lg hidden divide-y divide-gray-100">
+                <!-- 동적 렌더링 -->
+            </div>
+        </div>
+    </header>
+
+    <!-- 메인 컨테이너 -->
+    <main class="flex-1 max-w-2xl w-full mx-auto px-4 pt-5 pb-10 space-y-5">
+
+        <!-- 1. 내 알레르기 필터링 섹션 (클레이 카드) -->
+        <section class="clay-card p-4 sm:p-5">
+            <div class="flex items-center justify-between mb-2">
+                <div class="flex items-center gap-2">
+                    <span class="flex items-center justify-center w-7 h-7 rounded-full bg-red-100 text-red-500 clay-pill">
+                        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                    </span>
+                    <h2 class="font-clay text-base sm:text-lg text-cocoa">내 알레르기 안심 체크</h2>
+                    <span id="selected-allergy-count" class="hidden text-xs font-bold px-2.5 py-0.5 rounded-full bg-red-500 text-white">0개 선택</span>
+                </div>
+                <div class="flex items-center gap-2.5">
+                    <button id="reset-allergy-btn" type="button" class="text-xs text-gray-400 hover:text-gray-600 underline hidden">초기화</button>
+                    <button id="toggle-allergy-expand" type="button" class="text-xs font-bold text-orange-600 hover:text-orange-700 flex items-center gap-0.5 bg-orange-50 px-2.5 py-1 rounded-full">
+                        <span id="allergy-expand-text">전체보기</span>
+                        <i data-lucide="chevron-down" id="allergy-expand-icon" class="w-3.5 h-3.5 transition-transform"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <p class="text-xs text-gray-500 mb-3">주의해야 할 성분을 누르면 식단에서 <span class="text-red-600 font-bold">⚠️주의 메뉴</span>로 즉시 표시돼요!</p>
+
+            <!-- 알레르기 칩 목록 -->
+            <div id="allergy-chips-container" class="flex gap-2 overflow-x-auto no-scrollbar py-1 transition-all">
+                <!-- JS로 1~19번 칩 동적 생성 -->
+            </div>
+        </section>
+
+        <!-- 2. 조회 컨트롤 바 (일간/주간 탭 & 날짜 네비게이션) -->
+        <section class="clay-card p-3.5 sm:p-4 space-y-3">
+            <!-- 뷰 모드 전환 탭 & 오늘 버튼 -->
+            <div class="flex items-center justify-between gap-2">
+                <div class="inline-flex p-1 bg-cream rounded-2xl border border-orange-100">
+                    <button type="button" data-view="daily" class="view-tab-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-cocoa shadow-sm transition">
+                        일간 보기
+                    </button>
+                    <button type="button" data-view="weekly" class="view-tab-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-gray-500 hover:text-cocoa transition">
+                        주간(월~금) 보기
+                    </button>
+                </div>
+
+                <button id="btn-today" type="button" class="px-3.5 py-1.5 rounded-full bg-amber-100 hover:bg-amber-200 text-cocoa text-xs font-bold clay-pill transition active:scale-95 flex items-center gap-1">
+                    <i data-lucide="calendar-check" class="w-3.5 h-3.5 text-orange-600"></i>
+                    <span>오늘 식단</span>
+                </button>
+            </div>
+
+            <!-- 날짜 이동 컨트롤 -->
+            <div class="flex items-center justify-between bg-cream rounded-2xl p-1.5 border border-orange-100/80">
+                <button id="btn-prev-date" type="button" aria-label="이전 날짜" class="p-2.5 rounded-xl bg-white hover:bg-orange-50 text-cocoa clay-pill transition active:scale-90">
+                    <i data-lucide="chevron-left" class="w-5 h-5"></i>
+                </button>
+
+                <div class="relative flex items-center justify-center gap-2 cursor-pointer group">
+                    <input type="date" id="date-picker" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer z-10" aria-label="날짜 선택">
+                    <div class="flex items-center gap-2 px-3 py-1 rounded-xl group-hover:bg-white/80 transition">
+                        <i data-lucide="calendar" class="w-4 h-4 text-orange-500"></i>
+                        <span id="display-date-label" class="font-clay text-base sm:text-lg text-cocoa tracking-tight">2026년 11월 24일 (화)</span>
+                    </div>
+                </div>
+
+                <button id="btn-next-date" type="button" aria-label="다음 날짜" class="p-2.5 rounded-xl bg-white hover:bg-orange-50 text-cocoa clay-pill transition active:scale-90">
+                    <i data-lucide="chevron-right" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </section>
+
+        <!-- 3. 급식 식단 결과 컨테이너 -->
+        <section id="meal-results-container" class="space-y-4">
+            <!-- 로딩 스켈레톤 / 급식 카드 동적 렌더링 영역 -->
+        </section>
+
+    </main>
+
+    <!-- 하단 푸터 -->
+    <footer class="bg-white/70 border-t border-orange-100 py-5 px-4 text-center text-xs text-gray-400">
+        <p class="font-semibold text-gray-500">대전장대중학교 급식 안전 지킴이 · 나이스(NEIS) 오픈 API 연동</p>
+        <p class="mt-1">알레르기 정보는 학교 사정에 따라 변경될 수 있으므로 특이 체질 학생은 급식실에 재확인 바랍니다.</p>
+    </footer>
+
+    <!-- 커스텀 알림 토스트 -->
+    <div id="toast-message" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 translate-y-2">
+        <div class="bg-cocoa/95 backdrop-blur-sm text-white text-xs sm:text-sm font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2">
+            <i data-lucide="info" class="w-4 h-4 text-amber-300"></i>
+            <span id="toast-text">알림 메시지</span>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * ============================================================================
+         * 1. 상수 및 초기 설정 (NEIS API & 알레르기 코드표)
+         * ============================================================================
+         */
+        const NEIS_API_KEY = '75a11914bfcd4a9eab0f07147f4f21f9';
+        const NEIS_BASE_URL = 'https://open.neis.go.kr/hub';
+
+        // 기본 학교 정보: 대전장대중학교 (G10 / 7451044)
+        const DEFAULT_SCHOOL = {
+            ATPT_OFCDC_SC_CODE: 'G10',
+            ATPT_OFCDC_SC_NM: '대전광역시교육청',
+            SD_SCHUL_CODE: '7451044',
+            SCHUL_NM: '대전장대중학교',
+            ORG_RDNMA: '대전광역시 유성구 월드컵대로275번길 46',
+            LCTN_SC_NM: '대전'
+        };
+
+        // 나이스 표준 알레르기 유발 식품 19종 매핑
+        const ALLERGY_MAP = {
+            1: '난류',
+            2: '우유',
+            3: '메밀',
+            4: '땅콩',
+            5: '대두',
+            6: '밀',
+            7: '고등어',
+            8: '게',
+            9: '새우',
+            10: '돼지고기',
+            11: '복숭아',
+            12: '토마토',
+            13: '아황산류',
+            14: '호두',
+            15: '닭고기',
+            16: '쇠고기',
+            17: '오징어',
+            18: '조개류',
+            19: '잣'
+        };
+
+        // 애플리케이션 전역 상태
+        const state = {
+            school: null,
+            selectedDate: new Date(),
+            viewMode: 'daily',
+            selectedAllergies: new Set(),
+            isAllergyExpanded: false,
+            lastFetchedMeals: []
+        };
+
+        /**
+         * ============================================================================
+         * 2. 유틸리티 함수 (날짜 포맷, 로컬 스토리지, 토스트 알림)
+         * ============================================================================
+         */
+        function formatDateYMD(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}${m}${d}`;
+        }
+
+        function formatDateInput(date) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        function parseYMD(ymdStr) {
+            const y = parseInt(ymdStr.substring(0, 4), 10);
+            const m = parseInt(ymdStr.substring(4, 6), 10) - 1;
+            const d = parseInt(ymdStr.substring(6, 8), 10);
+            return new Date(y, m, d);
+        }
+
+        function getKoreanDayName(date) {
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            return days[date.getDay()];
+        }
+
+        function formatKoreanDateFull(date) {
+            return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 (${getKoreanDayName(date)})`;
+        }
+
+        function getWeekMonToFri(baseDate) {
+            const d = new Date(baseDate);
+            const day = d.getDay();
+            const diffToMon = day === 0 ? -6 : 1 - day;
+            const monday = new Date(d.setDate(d.getDate() + diffToMon));
+
+            const weekDays = [];
+            for (let i = 0; i < 5; i++) {
+                const current = new Date(monday);
+                current.setDate(monday.getDate() + i);
+                weekDays.push(current);
+            }
+            return weekDays;
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast-message');
+            const textEl = document.getElementById('toast-text');
+            textEl.textContent = msg;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 2600);
+        }
+
+        function saveToStorage() {
+            try {
+                if (state.school) {
+                    localStorage.setItem('neis_selected_school', JSON.stringify(state.school));
+                }
+                localStorage.setItem('neis_selected_allergies', JSON.stringify(Array.from(state.selectedAllergies)));
+            } catch (e) {
+                console.warn('LocalStorage 저장 실패:', e);
+            }
+        }
+
+        function loadFromStorage() {
+            try {
+                const savedSchool = localStorage.getItem('neis_selected_school');
+                if (savedSchool) {
+                    state.school = JSON.parse(savedSchool);
+                }
+                const savedAllergies = localStorage.getItem('neis_selected_allergies');
+                if (savedAllergies) {
+                    const arr = JSON.parse(savedAllergies);
+                    state.selectedAllergies = new Set(arr.map(Number));
+                }
+            } catch (e) {
+                console.warn('LocalStorage 로드 실패:', e);
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 3. 나이스(NEIS) API 통신 모듈
+         * ============================================================================
+         */
+        async function fetchSchoolInfo(params) {
+            const url = new URL(`${NEIS_BASE_URL}/schoolInfo`);
+            url.searchParams.append('KEY', NEIS_API_KEY);
+            url.searchParams.append('Type', 'json');
+            url.searchParams.append('pIndex', '1');
+            url.searchParams.append('pSize', '30');
+
+            Object.entries(params).forEach(([k, v]) => {
+                if (v) url.searchParams.append(k, v);
+            });
+
+            const response = await fetch(url.toString());
+            if (!response.ok) throw new Error('학교 정보 API 네트워크 오류');
+            const data = await response.json();
+
+            if (data.schoolInfo && data.schoolInfo[1] && data.schoolInfo[1].row) {
+                return data.schoolInfo[1].row;
+            }
+            return [];
+        }
+
+        async function fetchMealServiceDietInfo(atptCode, schulCode, fromYMD, toYMD) {
+            const url = new URL(`${NEIS_BASE_URL}/mealServiceDietInfo`);
+            url.searchParams.append('KEY', NEIS_API_KEY);
+            url.searchParams.append('Type', 'json');
+            url.searchParams.append('pIndex', '1');
+            url.searchParams.append('pSize', '100');
+            url.searchParams.append('ATPT_OFCDC_SC_CODE', atptCode);
+            url.searchParams.append('SD_SCHUL_CODE', schulCode);
+            url.searchParams.append('MLSV_FROM_YMD', fromYMD);
+            url.searchParams.append('MLSV_TO_YMD', toYMD || fromYMD);
+
+            const response = await fetch(url.toString());
+            if (!response.ok) throw new Error('급식 정보 API 네트워크 오류');
+            const data = await response.json();
+
+            if (data.mealServiceDietInfo && data.mealServiceDietInfo[1] && data.mealServiceDietInfo[1].row) {
+                return data.mealServiceDietInfo[1].row;
+            }
+            return [];
+        }
+
+        /**
+         * ============================================================================
+         * 4. 식단 텍스트 & 영양정보 파싱 & 아이콘 매칭 엔진
+         * ============================================================================
+         */
+        function parseDishList(ddishNm) {
+            if (!ddishNm) return [];
+            const rawLines = ddishNm.split(/<br\s*\/?>|\n/gi).map(s => s.trim()).filter(Boolean);
+
+            return rawLines.map(line => {
+                const allergyRegex = /\(([0-9.\s]+)\)/g;
+                let allergies = [];
+                let match;
+
+                while ((match = allergyRegex.exec(line)) !== null) {
+                    const nums = match[1]
+                        .split('.')
+                        .map(n => parseInt(n.trim(), 10))
+                        .filter(n => !isNaN(n) && ALLERGY_MAP[n]);
+                    allergies.push(...nums);
+                }
+
+                allergies = Array.from(new Set(allergies)).sort((a, b) => a - b);
+
+                let cleanName = line
+                    .replace(/\(([0-9.\s]+)\)/g, '')
+                    .replace(/[*@#]/g, '')
+                    .trim();
+
+                return {
+                    name: cleanName || line,
+                    allergies
+                };
+            });
+        }
+
+        function parseNutritionInfo(ntrInfo) {
+            if (!ntrInfo) return [];
+            return ntrInfo
+                .split(/<br\s*\/?>|\n/gi)
+                .map(item => item.trim())
+                .filter(Boolean)
+                .map(item => {
+                    const parts = item.split(':');
+                    if (parts.length >= 2) {
+                        return {
+                            label: parts[0].trim(),
+                            value: parts.slice(1).join(':').trim()
+                        };
+                    }
+                    return { label: item, value: '' };
+                });
+        }
+
+        // 메뉴명을 분석하여 어울리는 음식 이모지 아이콘 반환
+        function getMenuIcon(menuName) {
+            if (!menuName) return '🍽️';
+            if (/(우유|두유|요구르트|요거트|주스|에이드|식혜|차|라떼)/.test(menuName)) return '🥛';
+            if (/(김치|깍두기|겉절이|석박지|백김치|나박김치)/.test(menuName)) return '🥬';
+            if (/(밥|덮밥|볶음밥|비빔밥|주먹밥|김밥|리조또|죽|오므라이스|카레)/.test(menuName)) return '🍚';
+            if (/(국|탕|찌개|전골|수제비|미역국|된장|육개장|갈비탕|설렁탕|감자탕|부대찌개|순두부|스프)/.test(menuName)) return '🍲';
+            if (/(면|국수|라면|우동|스파게티|파스타|짜장|짬뽕|냉면|쫄면|잡채)/.test(menuName)) return '🍜';
+            if (/(돈까스|돈가스|치킨|닭|삼겹살|불고기|갈비|제육|보쌈|수육|스테이크|함박|소시지|햄|오리|탕수육|강정|너겟|장조림|육전)/.test(menuName)) return '🍖';
+            if (/(고등어|갈치|삼치|생선|연어|조기|가자미|꽁치|명태|동태|코다리|어묵|오징어|새우|낙지|쭈꾸미|꽃게|해물|멸치|미역|김|굴|조개)/.test(menuName)) return '🐟';
+            if (/(계란|달걀|오믈렛|메추리알|지단)/.test(menuName)) return '🥚';
+            if (/(떡볶이|만두|핫도그|피자|버거|샌드위치|토스트|빵|크로와상|와플|팬케이크|파이|케이크|쿠키|마카롱|도넛|추러스|과자)/.test(menuName)) return '🥐';
+            if (/(사과|바나나|딸기|포도|수박|귤|오렌지|토마토|파인애플|키위|배|복숭아|망고|블루베리|체리|과일|푸딩|젤리|아이스크림)/.test(menuName)) return '🍎';
+            if (/(샐러드|나물|무침|시금치|콩나물|숙주|브로콜리|버섯|감자|고구마|단호박|두부|쌈)/.test(menuName)) return '🥗';
+            return '🍱';
+        }
+
+        /**
+         * ============================================================================
+         * 5. UI 렌더링 함수들
+         * ============================================================================
+         */
+        function updateSchoolHeaderUI() {
+            const s = state.school || DEFAULT_SCHOOL;
+            document.getElementById('header-school-name').textContent = s.SCHUL_NM;
+            const coverTitle = document.getElementById('cover-school-title');
+            if (coverTitle) coverTitle.textContent = s.SCHUL_NM;
+            document.title = `${s.SCHUL_NM} 급식 안전 지킴이`;
+            document.getElementById('current-school-region').textContent = s.LCTN_SC_NM || s.ATPT_OFCDC_SC_NM.replace('교육청', '');
+            document.getElementById('current-school-address').textContent = s.ORG_RDNMA || s.ATPT_OFCDC_SC_NM;
+        }
+
+        function renderAllergyChips() {
+            const container = document.getElementById('allergy-chips-container');
+            const countBadge = document.getElementById('selected-allergy-count');
+            const resetBtn = document.getElementById('reset-allergy-btn');
+
+            if (state.isAllergyExpanded) {
+                container.className = 'flex flex-wrap gap-2 py-1 transition-all';
+            } else {
+                container.className = 'flex gap-2 overflow-x-auto no-scrollbar py-1 transition-all';
+            }
+
+            if (state.selectedAllergies.size > 0) {
+                countBadge.textContent = `${state.selectedAllergies.size}개 선택`;
+                countBadge.classList.remove('hidden');
+                resetBtn.classList.remove('hidden');
+            } else {
+                countBadge.classList.add('hidden');
+                resetBtn.classList.add('hidden');
+            }
+
+            container.innerHTML = Object.entries(ALLERGY_MAP).map(([numStr, name]) => {
+                const num = Number(numStr);
+                const isSelected = state.selectedAllergies.has(num);
+
+                const baseStyle = isSelected
+                    ? 'bg-red-500 text-white border-red-500 clay-pill-active font-bold'
+                    : 'bg-cream text-cocoa border-orange-100 hover:bg-orange-50 clay-pill font-semibold';
+
+                return `
+                    <button type="button" 
+                            data-allergy-id="${num}" 
+                            class="allergy-chip shrink-0 px-3 py-1.5 rounded-full text-xs border transition-all active:scale-95 flex items-center gap-1 ${baseStyle}">
+                        <span class="opacity-75 text-[10px]">${num}.</span>
+                        <span>${name}</span>
+                        ${isSelected ? '<span class="ml-0.5 text-[11px]">✓</span>' : ''}
+                    </button>
+                `;
+            }).join('');
+
+            container.querySelectorAll('.allergy-chip').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const id = Number(btn.dataset.allergyId);
+                    if (state.selectedAllergies.has(id)) {
+                        state.selectedAllergies.delete(id);
+                    } else {
+                        state.selectedAllergies.add(id);
+                    }
+                    saveToStorage();
+                    renderAllergyChips();
+                    renderMeals(state.lastFetchedMeals);
+                });
+            });
+        }
+
+        function updateDateControlsUI() {
+            const labelEl = document.getElementById('display-date-label');
+            const pickerEl = document.getElementById('date-picker');
+            pickerEl.value = formatDateInput(state.selectedDate);
+
+            if (state.viewMode === 'daily') {
+                labelEl.textContent = formatKoreanDateFull(state.selectedDate);
+            } else {
+                const weekDays = getWeekMonToFri(state.selectedDate);
+                const mon = weekDays[0];
+                const fri = weekDays[4];
+                labelEl.textContent = `${mon.getMonth() + 1}월 ${mon.getDate()}일(월) ~ ${fri.getMonth() + 1}월 ${fri.getDate()}일(금)`;
+            }
+
+            document.querySelectorAll('.view-tab-btn').forEach(btn => {
+                if (btn.dataset.view === state.viewMode) {
+                    btn.className = 'view-tab-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold bg-white text-cocoa shadow-sm transition';
+                } else {
+                    btn.className = 'view-tab-btn px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-semibold text-gray-500 hover:text-cocoa transition';
+                }
+            });
+        }
+
+        function renderLoadingSkeleton() {
+            const container = document.getElementById('meal-results-container');
+            container.innerHTML = `
+                <div class="clay-card p-5 space-y-4 animate-pulse">
+                    <div class="flex justify-between items-center">
+                        <div class="h-6 w-24 bg-orange-100 rounded-full"></div>
+                        <div class="h-5 w-20 bg-gray-100 rounded-full"></div>
+                    </div>
+                    <div class="space-y-2.5 pt-2">
+                        <div class="h-4 w-3/4 bg-gray-100 rounded-lg"></div>
+                        <div class="h-4 w-2/3 bg-gray-100 rounded-lg"></div>
+                        <div class="h-4 w-4/5 bg-gray-100 rounded-lg"></div>
+                        <div class="h-4 w-1/2 bg-gray-100 rounded-lg"></div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function getMealTypeBadge(mealCode, mealName) {
+            if (mealCode === '1' || mealName.includes('조식')) {
+                return { label: '조식', bg: 'bg-sky-100 text-sky-800 border-sky-200', icon: '🌅' };
+            }
+            if (mealCode === '3' || mealName.includes('석식')) {
+                return { label: '석식', bg: 'bg-indigo-100 text-indigo-800 border-indigo-200', icon: '🌙' };
+            }
+            return { label: '중식', bg: 'bg-amber-100 text-amber-900 border-amber-200', icon: '☀️' };
+        }
+
+        function createMealCardHTML(meal, index, showDateHeader = false) {
+            const badge = getMealTypeBadge(meal.MMEAL_SC_CODE, meal.MMEAL_SC_NM);
+            const dishes = parseDishList(meal.DDISH_NM);
+            const nutritions = parseNutritionInfo(meal.NTR_INFO);
+            const mealDateObj = parseYMD(meal.MLSV_YMD);
+            const dateStr = formatKoreanDateFull(mealDateObj);
+
+            let hasAnyUserAllergy = false;
+
+            const dishItemsHTML = dishes.map(dish => {
+                const matchedAllergies = dish.allergies.filter(id => state.selectedAllergies.has(id));
+                const isDanger = matchedAllergies.length > 0;
+                if (isDanger) hasAnyUserAllergy = true;
+
+                const menuIcon = getMenuIcon(dish.name);
+
+                const allergyTagsHTML = dish.allergies.length > 0
+                    ? `<div class="flex flex-wrap gap-1 mt-1">
+                        ${dish.allergies.map(id => {
+                            const isMine = state.selectedAllergies.has(id);
+                            return `<span class="text-[10px] px-1.5 py-0.5 rounded-md ${
+                                isMine 
+                                    ? 'bg-red-600 text-white font-bold shadow-xs' 
+                                    : 'bg-gray-100 text-gray-500'
+                            }">${id}.${ALLERGY_MAP[id]}</span>`;
+                        }).join('')}
+                       </div>`
+                    : '';
+
+                return `
+                    <li class="p-2.5 rounded-2xl transition-colors ${
+                        isDanger 
+                            ? 'bg-red-50 border border-red-200' 
+                            : 'hover:bg-cream/80'
+                    }">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <span class="text-xl leading-none select-none shrink-0" aria-hidden="true">${menuIcon}</span>
+                                <span class="text-sm sm:text-base font-bold ${isDanger ? 'text-red-700' : 'text-cocoa'}">
+                                    ${dish.name}
+                                </span>
+                                ${isDanger ? `<span class="inline-flex items-center gap-0.5 text-[11px] font-extrabold text-red-600 bg-red-100 px-2 py-0.5 rounded-full shrink-0">⚠️주의</span>` : ''}
+                            </div>
+                        </div>
+                        ${allergyTagsHTML}
+                    </li>
+                `;
+            }).join('');
+
+            const nutritionHTML = nutritions.length > 0
+                ? `<div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-3">
+                    ${nutritions.map(n => `
+                        <div class="bg-cream rounded-xl px-3 py-2 border border-orange-100/80 flex justify-between items-center">
+                            <span class="text-[11px] text-gray-500">${n.label}</span>
+                            <span class="text-xs font-bold text-cocoa">${n.value}</span>
+                        </div>
+                    `).join('')}
+                   </div>`
+                : `<p class="text-xs text-gray-400 pt-2">상세 영양정보가 제공되지 않았습니다.</p>`;
+
+            return `
+                <article class="clay-card overflow-hidden transition-all ${
+                    hasAnyUserAllergy ? 'border-2 border-red-300 allergy-danger-card' : ''
+                }">
+                    <!-- 카드 헤더 -->
+                    <div class="px-5 py-3.5 bg-gradient-to-r from-orange-50/90 via-amber-50/60 to-white border-b border-orange-100/70 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-extrabold border clay-pill ${badge.bg}">
+                                <span>${badge.icon}</span>
+                                <span>${badge.label}</span>
+                            </span>
+                            ${showDateHeader ? `<span class="font-clay text-sm text-cocoa">${dateStr}</span>` : ''}
+                        </div>
+
+                        <div class="flex items-center gap-1.5">
+                            ${hasAnyUserAllergy 
+                                ? `<span class="text-[11px] font-bold text-red-600 bg-red-100 px-2.5 py-1 rounded-full flex items-center gap-1">
+                                     ⚠️ 알레르기 주의
+                                   </span>` 
+                                : (state.selectedAllergies.size > 0 
+                                    ? `<span class="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full">✅ 안심 식단</span>` 
+                                    : '')
+                            }
+                        </div>
+                    </div>
+
+                    <!-- 메뉴 리스트 -->
+                    <div class="p-4 sm:p-5">
+                        <ul class="space-y-1.5 divide-y divide-gray-100/80">
+                            ${dishItemsHTML}
+                        </ul>
+                    </div>
+
+                    <!-- 하단 칼로리 및 영양정보 아코디언 -->
+                    <div class="px-5 py-3 bg-cream/70 border-t border-orange-100/60">
+                        <button type="button" 
+                                data-accordion-target="nutr-panel-${index}"
+                                class="nutrition-toggle-btn w-full flex items-center justify-between text-xs font-bold text-cocoa hover:text-orange-600 transition">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-lg bg-white text-orange-600 border border-orange-200/80 font-extrabold shadow-2xs">
+                                    🔥 ${meal.CAL_INFO || '칼로리 정보 없음'}
+                                </span>
+                                <span class="text-gray-500 font-medium">영양정보 상세보기</span>
+                            </div>
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 transition-transform duration-200"></i>
+                        </button>
+
+                        <div id="nutr-panel-${index}" class="accordion-content">
+                            ${nutritionHTML}
+                        </div>
+                    </div>
+                </article>
+            `;
+        }
+
+        function renderMeals(meals) {
+            state.lastFetchedMeals = meals || [];
+            const container = document.getElementById('meal-results-container');
+
+            if (!meals || meals.length === 0) {
+                container.innerHTML = `
+                    <div class="clay-card p-10 text-center space-y-3">
+                        <div class="w-16 h-16 rounded-full bg-cream text-orange-400 flex items-center justify-center mx-auto text-3xl clay-pill">
+                            🍱
+                        </div>
+                        <h3 class="font-clay text-lg text-cocoa">등록된 급식 정보가 없습니다</h3>
+                        <p class="text-xs sm:text-sm text-gray-500 max-w-xs mx-auto leading-relaxed">
+                            주말, 공휴일, 방학 기간이거나 학교에서 아직 해당 날짜의 식단을 등록하지 않았습니다.
+                        </p>
+                    </div>
+                `;
+                return;
+            }
+
+            const sortedMeals = [...meals].sort((a, b) => {
+                if (a.MLSV_YMD !== b.MLSV_YMD) return a.MLSV_YMD.localeCompare(b.MLSV_YMD);
+                return String(a.MMEAL_SC_CODE).localeCompare(String(b.MMEAL_SC_CODE));
+            });
+
+            const showDateHeader = state.viewMode === 'weekly';
+            container.innerHTML = sortedMeals.map((meal, idx) => createMealCardHTML(meal, idx, showDateHeader)).join('');
+
+            container.querySelectorAll('.nutrition-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const targetId = btn.dataset.accordionTarget;
+                    const panel = document.getElementById(targetId);
+                    const icon = btn.querySelector('svg');
+                    const isOpen = panel.classList.contains('open');
+
+                    if (isOpen) {
+                        panel.classList.remove('open');
+                        if (icon) icon.style.transform = 'rotate(0deg)';
+                    } else {
+                        panel.classList.add('open');
+                        if (icon) icon.style.transform = 'rotate(180deg)';
+                    }
+                });
+            });
+
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 6. 핵심 비즈니스 로직 (식단 불러오기 & 학교 검색)
+         * ============================================================================
+         */
+        async function loadMealsForCurrentState() {
+            const school = state.school || DEFAULT_SCHOOL;
+            updateDateControlsUI();
+            renderLoadingSkeleton();
+
+            try {
+                let fromYMD, toYMD;
+                if (state.viewMode === 'daily') {
+                    fromYMD = formatDateYMD(state.selectedDate);
+                    toYMD = fromYMD;
+                } else {
+                    const weekDays = getWeekMonToFri(state.selectedDate);
+                    fromYMD = formatDateYMD(weekDays[0]);
+                    toYMD = formatDateYMD(weekDays[4]);
+                }
+
+                const meals = await fetchMealServiceDietInfo(
+                    school.ATPT_OFCDC_SC_CODE,
+                    school.SD_SCHUL_CODE,
+                    fromYMD,
+                    toYMD
+                );
+
+                renderMeals(meals);
+            } catch (error) {
+                console.error('급식 조회 오류:', error);
+                document.getElementById('meal-results-container').innerHTML = `
+                    <div class="clay-card border-red-200 p-8 text-center space-y-2">
+                        <div class="text-3xl">⚠️</div>
+                        <h3 class="font-clay text-base text-red-700">식단 정보를 불러오지 못했습니다</h3>
+                        <p class="text-xs text-gray-500">네트워크 연결 상태를 확인하거나 잠시 후 다시 시도해주세요.</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function handleSchoolSearch() {
+            const inputEl = document.getElementById('school-search-input');
+            const resultsEl = document.getElementById('school-search-results');
+            const query = inputEl.value.trim();
+
+            if (query.length < 2) {
+                showToast('학교명을 2글자 이상 입력해주세요.');
+                return;
+            }
+
+            resultsEl.classList.remove('hidden');
+            resultsEl.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">학교 정보를 검색 중입니다...</div>`;
+
+            try {
+                const schools = await fetchSchoolInfo({ SCHUL_NM: query });
+
+                if (!schools || schools.length === 0) {
+                    resultsEl.innerHTML = `<div class="p-4 text-center text-xs text-gray-500">검색 결과가 없습니다. 정확한 학교명을 입력해주세요.</div>`;
+                    return;
+                }
+
+                resultsEl.innerHTML = schools.map((s, idx) => `
+                    <button type="button" data-school-idx="${idx}" class="school-result-item w-full text-left px-4 py-3 hover:bg-orange-50 transition flex items-start justify-between gap-2">
+                        <div>
+                            <div class="font-bold text-sm text-cocoa">${s.SCHUL_NM}</div>
+                            <div class="text-xs text-gray-500 mt-0.5">${s.ORG_RDNMA || s.ATPT_OFCDC_SC_NM}</div>
+                        </div>
+                        <span class="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-orange-100 text-orange-800">
+                            ${s.LCTN_SC_NM || ''}
+                        </span>
+                    </button>
+                `).join('');
+
+                resultsEl.querySelectorAll('.school-result-item').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        const selected = schools[Number(btn.dataset.schoolIdx)];
+                        state.school = {
+                            ATPT_OFCDC_SC_CODE: selected.ATPT_OFCDC_SC_CODE,
+                            ATPT_OFCDC_SC_NM: selected.ATPT_OFCDC_SC_NM,
+                            SD_SCHUL_CODE: selected.SD_SCHUL_CODE,
+                            SCHUL_NM: selected.SCHUL_NM,
+                            ORG_RDNMA: selected.ORG_RDNMA,
+                            LCTN_SC_NM: selected.LCTN_SC_NM
+                        };
+                        saveToStorage();
+                        updateSchoolHeaderUI();
+
+                        resultsEl.classList.add('hidden');
+                        document.getElementById('school-search-panel').classList.add('hidden');
+                        inputEl.value = '';
+
+                        showToast(`${state.school.SCHUL_NM} 급식으로 설정되었습니다.`);
+                        loadMealsForCurrentState();
+                    });
+                });
+            } catch (err) {
+                console.error('학교 검색 오류:', err);
+                resultsEl.innerHTML = `<div class="p-4 text-center text-xs text-red-500">검색 중 오류가 발생했습니다.</div>`;
+            }
+        }
+
+        /**
+         * ============================================================================
+         * 7. 이벤트 바인딩 및 앱 초기화
+         * ============================================================================
+         */
+        function setupEventListeners() {
+            // 시작 표지 화면 열기/닫기 제어
+            const coverScreen = document.getElementById('cover-screen');
+            const enterAppBtn = document.getElementById('enter-app-btn');
+            const openCoverBtn = document.getElementById('open-cover-btn');
+
+            if (enterAppBtn && coverScreen) {
+                enterAppBtn.addEventListener('click', () => {
+                    coverScreen.classList.add('cover-hidden');
+                });
+            }
+            if (openCoverBtn && coverScreen) {
+                openCoverBtn.addEventListener('click', () => {
+                    coverScreen.classList.remove('cover-hidden');
+                });
+            }
+
+            const toggleSearchBtn = document.getElementById('toggle-search-btn');
+            const searchPanel = document.getElementById('school-search-panel');
+            const searchInput = document.getElementById('school-search-input');
+
+            toggleSearchBtn.addEventListener('click', () => {
+                searchPanel.classList.toggle('hidden');
+                if (!searchPanel.classList.contains('hidden')) {
+                    searchInput.focus();
+                }
+            });
+
+            document.getElementById('school-search-submit').addEventListener('click', handleSchoolSearch);
+            searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleSchoolSearch();
+                }
+            });
+
+            document.getElementById('toggle-allergy-expand').addEventListener('click', () => {
+                state.isAllergyExpanded = !state.isAllergyExpanded;
+                document.getElementById('allergy-expand-text').textContent = state.isAllergyExpanded ? '접기' : '전체보기';
+                document.getElementById('allergy-expand-icon').style.transform = state.isAllergyExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+                renderAllergyChips();
+            });
+
+            document.getElementById('reset-allergy-btn').addEventListener('click', () => {
+                state.selectedAllergies.clear();
+                saveToStorage();
+                renderAllergyChips();
+                renderMeals(state.lastFetchedMeals);
+                showToast('선택한 알레르기 정보가 초기화되었습니다.');
+            });
+
+            document.querySelectorAll('.view-tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const newMode = btn.dataset.view;
+                    if (state.viewMode !== newMode) {
+                        state.viewMode = newMode;
+                        loadMealsForCurrentState();
+                    }
+                });
+            });
+
+            document.getElementById('btn-today').addEventListener('click', () => {
+                state.selectedDate = new Date();
+                loadMealsForCurrentState();
+            });
+
+            document.getElementById('btn-prev-date').addEventListener('click', () => {
+                const step = state.viewMode === 'weekly' ? -7 : -1;
+                state.selectedDate.setDate(state.selectedDate.getDate() + step);
+                loadMealsForCurrentState();
+            });
+
+            document.getElementById('btn-next-date').addEventListener('click', () => {
+                const step = state.viewMode === 'weekly' ? 7 : 1;
+                state.selectedDate.setDate(state.selectedDate.getDate() + step);
+                loadMealsForCurrentState();
+            });
+
+            document.getElementById('date-picker').addEventListener('change', (e) => {
+                if (e.target.value) {
+                    const [y, m, d] = e.target.value.split('-').map(Number);
+                    state.selectedDate = new Date(y, m - 1, d);
+                    loadMealsForCurrentState();
+                }
+            });
+        }
+
+        async function initApp() {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+
+            loadFromStorage();
+
+            if (!state.school) {
+                state.school = { ...DEFAULT_SCHOOL };
+                try {
+                    const rows = await fetchSchoolInfo({
+                        ATPT_OFCDC_SC_CODE: DEFAULT_SCHOOL.ATPT_OFCDC_SC_CODE,
+                        SD_SCHUL_CODE: DEFAULT_SCHOOL.SD_SCHUL_CODE
+                    });
+                    if (rows && rows.length > 0) {
+                        state.school = {
+                            ATPT_OFCDC_SC_CODE: rows[0].ATPT_OFCDC_SC_CODE,
+                            ATPT_OFCDC_SC_NM: rows[0].ATPT_OFCDC_SC_NM,
+                            SD_SCHUL_CODE: rows[0].SD_SCHUL_CODE,
+                            SCHUL_NM: rows[0].SCHUL_NM,
+                            ORG_RDNMA: rows[0].ORG_RDNMA,
+                            LCTN_SC_NM: rows[0].LCTN_SC_NM
+                        };
+                    }
+                } catch (e) {
+                    console.warn('기본 학교 API 동기화 실패, 내장 기본값 사용:', e);
+                }
+                saveToStorage();
+            }
+
+            updateSchoolHeaderUI();
+            renderAllergyChips();
+            setupEventListeners();
+            await loadMealsForCurrentState();
+        }
+
+        window.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
